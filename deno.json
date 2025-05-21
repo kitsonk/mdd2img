@@ -20,6 +20,12 @@
       "_fixtures"
     ]
   },
+  "compilerOptions": {
+    "lib": [
+      "deno.ns",
+      "dom"
+    ]
+  },
   "fmt": {
     "exclude": ["_fixtures"],
     "lineWidth": 120

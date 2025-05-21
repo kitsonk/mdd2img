@@ -1,4 +1,3 @@
-/// <reference lib="dom" />
 import { launch } from "@astral/astral";
 import { serve } from "./serve.ts";
 
