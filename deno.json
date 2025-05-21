@@ -1,0 +1,28 @@
+{
+  "name": "@kitsonk/mdd2img",
+  "version": "0.1.0-beta.1",
+  "tasks": {
+    "check": "deno fmt --check && deno lint && deno check --doc *.ts",
+    "test": "deno test --allow-read --allow-write --allow-net --allow-env --allow-run --parallel",
+    "test:ci": "deno test --allow-read --allow-write --allow-net --allow-env --allow-run --junit-path=junit.xml --coverage=./cov --parallel"
+  },
+  "exports": {
+    ".": "./mod.ts",
+    "./serve": "./serve.ts"
+  },
+  "imports": {
+    "@astral/astral": "jsr:@astral/astral@^0.5.2"
+  },
+  "publish": {
+    "exclude": [
+      "*.test.ts",
+      ".github",
+      "_fixtures"
+    ]
+  },
+  "fmt": {
+    "exclude": ["_fixtures"],
+    "lineWidth": 120
+  },
+  "lock": false
+}
