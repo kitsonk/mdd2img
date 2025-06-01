@@ -11,7 +11,7 @@
  * const mdd = `graph TD; A-->B;`;
  *
  * const svg = await generate(mdd);
- * await Deno.writeFile("output.svg", svg);
+ * await Deno.writeTextFile("output.svg", svg);
  * ```
  *
  * ## About
@@ -28,34 +28,25 @@
  * @module
  */
 
-import { launch } from "@astral/astral";
+import { launch, type Page } from "@astral/astral";
+
+import { FA_CDN } from "./consts.ts";
 import { serve } from "./serve.ts";
 
-const FA_VERSION = "6.7.2";
-const FA_CDN = `https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@${FA_VERSION}/css/all.min.css`;
-
 /**
- * Generate an SVG from a Mermaid diagram markdown string.
- *
- * @example Generate an SVG from a Mermaid diagram markdown string:
- *
- * ```ts
- * import { generate } from "@kitsonk/mdd2img";
- *
- * const mdd = `graph TD; A-->B;`;
- * const svg = await generate(mdd);
- * await Deno.writeFile("output.svg", svg);
- * ```
- *
- * @param mdd The Mermaid diagram markdown to convert to an SVG.
- * @returns
+ * Options for generating an image from a Mermaid diagram string.
  */
-export async function generate(mdd: string): Promise<string> {
-  const server = await serve(mdd);
-  const browser = await launch();
-  const page = await browser.newPage(`http://localhost:${server.addr.port}/`);
+export interface GenerateOptions {
+  /**
+   * The format of the generated image. Defaults to "svg".
+   */
+  format?: "svg" | "png" | "jpeg" | "webp";
+}
+
+async function generateSvg(page: Page): Promise<string> {
+  await page.waitForNetworkIdle();
   await page.waitForSelector("#container > svg");
-  const diagram = await page.evaluate((faCDN: string) => {
+  return page.evaluate((faCDN: string) => {
     const svgElement = document
       .querySelector("#container > svg")!
       .cloneNode(true) as SVGSVGElement;
@@ -66,6 +57,62 @@ export async function generate(mdd: string): Promise<string> {
     const xmlSerializer = new XMLSerializer();
     return xmlSerializer.serializeToString(svgElement);
   }, { args: [FA_CDN] });
+}
+
+async function generateImage(
+  page: Page,
+  format: "png" | "jpeg" | "webp",
+): Promise<Uint8Array> {
+  const svg = await page.waitForSelector("#container > svg");
+  return svg.screenshot({
+    format,
+    quality: format !== "png" ? 90 : undefined,
+  });
+}
+
+/**
+ * Generate an image from a Mermaid diagram markdown string.
+ *
+ * @example Generate an PNG from a Mermaid diagram markdown string:
+ *
+ * ```ts
+ * import { generate } from "@kitsonk/mdd2img";
+ *
+ * const mdd = `graph TD; A-->B;`;
+ * const img = await generate(mdd, { format: "png" });
+ * await Deno.writeFile("output.png", img);
+ * ```
+ *
+ * @param mdd The Mermaid diagram markdown to convert to an image.
+ * @returns
+ */
+export async function generate(
+  mdd: string,
+  options: GenerateOptions & { format: "png" | "jpeg" | "webp" },
+): Promise<Uint8Array>;
+/**
+ * Generate an SVG from a Mermaid diagram markdown string.
+ *
+ * @example Generate an SVG from a Mermaid diagram markdown string:
+ *
+ * ```ts
+ * import { generate } from "@kitsonk/mdd2img";
+ *
+ * const mdd = `graph TD; A-->B;`;
+ * const svg = await generate(mdd);
+ * await Deno.writeTextFile("output.svg", svg);
+ * ```
+ *
+ * @param mdd The Mermaid diagram markdown to convert to an SVG.
+ * @returns
+ */
+export async function generate(mdd: string, options?: GenerateOptions): Promise<string>;
+export async function generate(mdd: string, options: GenerateOptions = {}): Promise<string | Uint8Array> {
+  const { format = "svg" } = options;
+  const server = await serve(mdd);
+  const browser = await launch();
+  const page = await browser.newPage(`http://localhost:${server.addr.port}/`);
+  const diagram = format === "svg" ? await generateSvg(page) : await generateImage(page, format);
   await browser.close();
   await server.shutdown();
   return diagram;

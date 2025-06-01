@@ -6,8 +6,7 @@
  * @module
  */
 
-const MERMAID_VERSION = "11.6.0";
-const MERMAID_CDN = `https://cdn.jsdelivr.net/npm/mermaid@${MERMAID_VERSION}/dist/mermaid.esm.min.mjs`;
+import { FA_CDN, MERMAID_CDN } from "./consts.ts";
 
 /**
  * Host a Mermaid diagram markdown string on a local server.
@@ -27,6 +26,9 @@ export async function serve(mdd: string): Promise<Deno.HttpServer<Deno.NetAddr>>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title></title>
+  <style>
+    @import url("${FA_CDN}");
+  </style>
 </head>
 <body>
   <pre id="container" class="mermaid">
