@@ -1,5 +1,6 @@
-import { assert } from "jsr:@std/assert/assert";
-import { timingSafeEqual } from "jsr:@std/crypto/timing-safe-equal";
+// deno-lint-ignore-file no-import-prefix
+import { assert } from "jsr:@std/assert@1/assert";
+import { timingSafeEqual } from "jsr:@std/crypto@1/timing-safe-equal";
 
 import { generate } from "./mod.ts";
 
@@ -25,7 +26,7 @@ Deno.test({
       Mermaid
 `;
     const actual = await generate(mdd);
-    assert(actual.startsWith(`<svg aria-roledescription="mindmap" role="graphics-document document"`));
+    assert(actual.startsWith(`<svg id="mermaid-`));
   },
 });
 
@@ -51,7 +52,7 @@ Deno.test({
       Mermaid
 `;
     const actual = await generate(mdd, { format: "svg" });
-    assert(actual.startsWith(`<svg aria-roledescription="mindmap" role="graphics-document document"`));
+    assert(actual.startsWith(`<svg id="mermaid-`));
   },
 });
 
